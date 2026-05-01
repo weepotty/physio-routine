@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Physio Routine</title>
+<style>
+body {
+  font-family: -apple-system, sans-serif;
+  background: #f7f7f7;
+  padding: 20px;
+  text-align: center;
+}
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+button {
+  padding: 16px 22px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+  background: black;
+  color: white;
+  margin-top: 20px;
+}
+.small {
+  color: #666;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2 id="title"></h2>
+  <p id="desc"></p>
+  <h1 id="main"></h1>
+  <p class="small" id="sub"></p>
+  <button onclick="next()">Next</button>
+</div>
+
+<script>
+const routine = [
+  {title: "Hip mobility", desc: "Pain free movement", main: "2–3 mins"},
+  {title: "Hip rolling", desc: "Foam roller or side lying", main: "10 reps x 3 each side"},
+  {title: "Glute bridge single leg", desc: "With foam roller", main: "10–12 reps x 3 each side"},
+  {title: "Single leg squat", desc: "Add weight", main: "8–10 reps x 3 each side"},
+  {title: "Copenhagen plank", desc: "Bent knee hold", timer: 10, sets: 8},
+  {title: "Split stance hinge", desc: "Hinge at hips", main: "10–12 reps x 3 each side"},
+  {title: "Drop jump", desc: "Quick rebound", main: "6–8 reps x 2"},
+  {title: "Hip 90/90", desc: "Mobility", main: "1–2 mins"},
+  {title: "Pigeon pose", desc: "Stretch front hip", main: "1–2 mins each side"},
+  {title: "Butterfly stretch", desc: "Adductors", main: "1–2 mins"}
+];
+
+let i = 0;
+let currentSet = 1;
+
+function render() {
+  const item = routine[i];
+
+  document.getElementById("title").innerText = item.title;
+  document.getElementById("desc").innerText = item.desc;
+
+  if (item.timer) {
+    document.getElementById("main").innerText = item.timer + "s hold";
+    document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+    startTimer(item.timer);
+  } else {
+    document.getElementById("main").innerText = item.main;
+    document.getElementById("sub").innerText = "";
+  }
+}
+
+function startTimer(seconds) {
+  let time = seconds;
+  const interval = setInterval(() => {
+    document.getElementById("main").innerText = time + "s";
+    time--;
+    if (time < 0) {
+      clearInterval(interval);
+      currentSet++;
+      if (currentSet <= routine[i].sets) {
+        startTimer(seconds);
+      } else {
+        currentSet = 1;
+      }
+    }
+  }, 1000);
+}
+
+function next() {
+  i++;
+  currentSet = 1;
+  if (i >= routine.length) i = 0;
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
