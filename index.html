@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Physio Routine</title>
+<title>Fix My Hip</title>
 <style>
   *, *::before, *::after {
     box-sizing: border-box;
@@ -381,7 +381,7 @@
 <!-- Home screen -->
 <div id="home-screen">
   <div class="home-hero">
-    <h1>Physio Routine</h1>
+    <h1>Fix My Hip</h1>
     <p>10 exercises</p>
   </div>
   <div class="home-list-card">
@@ -492,11 +492,13 @@ const routine = [
   {title: "Butterfly stretch", desc: "Adductors", main: "1–2 mins", link: "https://www.youtube.com/shorts/1ZbyKG0LoSc"}
 ];
 
+const REST_SECONDS = 5;
+
 let i = 0;
 let currentSet = 1;
 let repCount = 0;
 let intervalId = null;
-let timerState = "idle"; // "idle" | "running" | "paused" | "done"
+let timerState = "idle"; // "idle" | "running" | "paused" | "resting" | "done"
 let remainingTime = 0;
 let audioCtx = null;
 
@@ -617,7 +619,13 @@ function render() {
 }
 
 function setTimerButtonLabel() {
-  const labels = { idle: "Start", running: "Pause", paused: "Resume", done: "Start" };
+  const labels = {
+    idle: "Start",
+    running: "Pause",
+    paused: "Resume",
+    resting: "Skip rest",
+    done: "Start"
+  };
   document.getElementById("timer-btn").innerText = labels[timerState];
 }
 
@@ -630,6 +638,11 @@ function toggleTimer() {
     clearInterval(intervalId);
     intervalId = null;
     timerState = "paused";
+    setTimerButtonLabel();
+  } else if (timerState === "resting") {
+    clearInterval(intervalId);
+    intervalId = null;
+    finishRest();
   } else if (timerState === "done") {
     currentSet = 1;
     remainingTime = item.timer;
@@ -637,11 +650,12 @@ function toggleTimer() {
     document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
     timerState = "running";
     runTimer();
+    setTimerButtonLabel();
   } else {
     timerState = "running";
     runTimer();
+    setTimerButtonLabel();
   }
-  setTimerButtonLabel();
 }
 
 function runTimer() {
@@ -654,10 +668,7 @@ function runTimer() {
       currentSet++;
       if (currentSet <= item.sets) {
         playSetComplete();
-        remainingTime = item.timer;
-        document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
-        document.getElementById("main").innerText = remainingTime + "s";
-        runTimer();
+        startRest();
       } else {
         playAllSetsComplete();
         document.getElementById("main").innerText = "Done";
@@ -669,6 +680,34 @@ function runTimer() {
       document.getElementById("main").innerText = remainingTime + "s";
     }
   }, 1000);
+}
+
+function startRest() {
+  const item = routine[i];
+  timerState = "resting";
+  remainingTime = REST_SECONDS;
+  document.getElementById("main").innerText = remainingTime + "s";
+  document.getElementById("sub").innerText = "Rest before set " + currentSet + " of " + item.sets;
+  setTimerButtonLabel();
+  intervalId = setInterval(function() {
+    remainingTime--;
+    if (remainingTime < 0) {
+      clearInterval(intervalId);
+      intervalId = null;
+      finishRest();
+    } else {
+      document.getElementById("main").innerText = remainingTime + "s";
+    }
+  }, 1000);
+}
+
+function finishRest() {
+  const item = routine[i];
+  remainingTime = item.timer;
+  timerState = "idle";
+  document.getElementById("main").innerText = remainingTime + "s";
+  document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+  setTimerButtonLabel();
 }
 
 function restartTimer() {
