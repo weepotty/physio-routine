@@ -29,6 +29,16 @@ button {
   color: #666;
   font-size: 14px;
 }
+.video-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #0066cc;
+  text-decoration: none;
+}
+.video-link:hover {
+  text-decoration: underline;
+}
 </style>
 </head>
 
@@ -39,34 +49,43 @@ button {
   <p id="desc"></p>
   <h1 id="main"></h1>
   <p class="small" id="sub"></p>
+  <a id="link" class="video-link" href="#" target="_blank" style="display:none">Watch video</a>
+  <br>
   <button onclick="next()">Next</button>
 </div>
 
 <script>
 const routine = [
-  {title: "Hip mobility", desc: "Pain free movement", main: "2–3 mins"},
-  {title: "Hip rolling", desc: "Foam roller or side lying", main: "10 reps x 3 each side"},
+  {title: "Hip mobility", desc: "Stay within pain free range", main: "2–3 mins"},
+  {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3"},
   {title: "Glute bridge single leg", desc: "With foam roller", main: "10–12 reps x 3 each side"},
-  {title: "Single leg squat", desc: "Add weight", main: "8–10 reps x 3 each side"},
-  {title: "Copenhagen plank", desc: "Bent knee hold", timer: 10, sets: 8},
-  {title: "Split stance hinge", desc: "Hinge at hips", main: "10–12 reps x 3 each side"},
-  {title: "Drop jump", desc: "Quick rebound", main: "6–8 reps x 2"},
-  {title: "Hip 90/90", desc: "Mobility", main: "1–2 mins"},
-  {title: "Pigeon pose", desc: "Stretch front hip", main: "1–2 mins each side"},
-  {title: "Butterfly stretch", desc: "Adductors", main: "1–2 mins"}
+  {title: "Single leg squat", desc: "With weight (3kg or equivalent)", main: "8–10 reps x 3 each side", link: "https://www.youtube.com/watch?v=7oHiAdRQbyc"},
+  {title: "Copenhagen plank", desc: "Bent knee — straight line from shoulder, hip and knee", timer: 10, sets: 8, link: "https://www.youtube.com/shorts/doyRE40wurU"},
+  {title: "Split stance hinge", desc: "Weight on front leg, hinge at hips until you feel a stretch", main: "10–12 reps x 3 each side", link: "https://www.youtube.com/watch?v=rtCk4T6eRNg"},
+  {title: "Drop jump", desc: "Step off, land and rebound as quickly and as high as possible", main: "6–8 reps x 2 sets", link: "https://www.youtube.com/watch?v=LrZuW-sJPBo"},
+  {title: "Hip 90/90", desc: "Focus on 90/90 position", main: "1–2 mins", link: "https://www.youtube.com/shorts/PaAsDR0jyPQ"},
+  {title: "Pigeon pose", desc: "Stretch back leg further to feel stretch at front of hip too", main: "1–2 mins each side", link: "https://www.youtube.com/shorts/pjmR5Kacu1w"},
+  {title: "Butterfly stretch", desc: "Adductors", main: "1–2 mins", link: "https://www.youtube.com/shorts/1ZbyKG0LoSc"}
 ];
 
 let i = 0;
 let currentSet = 1;
+let intervalId = null;
 
 function render() {
   const item = routine[i];
-
   document.getElementById("title").innerText = item.title;
   document.getElementById("desc").innerText = item.desc;
 
+  const linkEl = document.getElementById("link");
+  if (item.link) {
+    linkEl.href = item.link;
+    linkEl.style.display = "inline-block";
+  } else {
+    linkEl.style.display = "none";
+  }
+
   if (item.timer) {
-    document.getElementById("main").innerText = item.timer + "s hold";
     document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
     startTimer(item.timer);
   } else {
@@ -76,23 +95,34 @@ function render() {
 }
 
 function startTimer(seconds) {
+  if (intervalId) clearInterval(intervalId);
   let time = seconds;
-  const interval = setInterval(() => {
-    document.getElementById("main").innerText = time + "s";
+  document.getElementById("main").innerText = time + "s";
+  intervalId = setInterval(() => {
     time--;
     if (time < 0) {
-      clearInterval(interval);
+      clearInterval(intervalId);
+      intervalId = null;
       currentSet++;
       if (currentSet <= routine[i].sets) {
+        document.getElementById("sub").innerText = "Set " + currentSet + " of " + routine[i].sets;
         startTimer(seconds);
       } else {
         currentSet = 1;
+        document.getElementById("main").innerText = "Done";
+        document.getElementById("sub").innerText = "";
       }
+    } else {
+      document.getElementById("main").innerText = time + "s";
     }
   }, 1000);
 }
 
 function next() {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
   i++;
   currentSet = 1;
   if (i >= routine.length) i = 0;
