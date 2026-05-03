@@ -539,6 +539,13 @@ function playAllSetsComplete() {
   });
 }
 
+function playGo() {
+  const ctx = getAudioContext();
+  const now = ctx.currentTime;
+  playTone(880, now, 0.12, ctx);
+  playTone(1175, now + 0.14, 0.18, ctx);
+}
+
 function showScreen(screenId) {
   document.getElementById("home-screen").style.display = screenId === "home" ? "block" : "none";
   document.getElementById("exercise-screen").style.display = screenId === "exercise" ? "block" : "none";
@@ -704,10 +711,12 @@ function startRest() {
 function finishRest() {
   const item = routine[i];
   remainingTime = item.timer;
-  timerState = "idle";
+  timerState = "running";
   document.getElementById("main").innerText = remainingTime + "s";
   document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
   setTimerButtonLabel();
+  playGo();
+  runTimer();
 }
 
 function restartTimer() {
