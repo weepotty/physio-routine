@@ -262,30 +262,50 @@
     color: #7a82a6;
   }
 
-  /* Video link chip */
-  #link {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #3d52c7;
-    background: #eef0fd;
-    padding: 6px 14px;
-    border-radius: 20px;
-    text-decoration: none;
-    transition: background 0.15s;
+  /* Timer controls */
+  .btn-timer {
+    width: 140px;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4f63d2, #3d52c7);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(79, 99, 210, 0.3);
+    transition: opacity 0.15s, box-shadow 0.15s;
     -webkit-tap-highlight-color: transparent;
+    display: block;
+    margin: 0 auto;
   }
 
-  #link:hover {
-    background: #dde1f9;
+  .btn-timer:hover {
+    opacity: 0.92;
+    box-shadow: 0 6px 18px rgba(79, 99, 210, 0.38);
   }
 
-  #link::before {
-    content: "▶";
-    font-size: 10px;
+  /* Embedded video */
+  .video-embed {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    border: none;
+    border-radius: 10px;
+    background: #000;
+  }
+
+  .video-embed.regular {
+    aspect-ratio: 16 / 9;
+  }
+
+  .video-embed.short {
+    aspect-ratio: 9 / 16;
+    max-height: 380px;
+    width: auto;
+    max-width: 215px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   /* Nav */
@@ -440,7 +460,14 @@
         <button class="rep-reset" onclick="resetRep()">reset</button>
       </div>
 
-      <a id="link" class="video-link" href="#" target="_blank" style="display:none">Watch video</a>
+      <div id="timer-controls" class="rep-section" style="display:none">
+        <button class="btn-timer" id="timer-btn" onclick="toggleTimer()">Start</button>
+        <button class="rep-reset" onclick="restartTimer()">restart</button>
+      </div>
+
+      <iframe id="link" class="video-embed regular" src="" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen style="display:none"></iframe>
 
       <div class="nav">
         <button class="btn-secondary" onclick="prev()">Back</button>
@@ -469,6 +496,8 @@ let i = 0;
 let currentSet = 1;
 let repCount = 0;
 let intervalId = null;
+let timerState = "idle"; // "idle" | "running" | "paused" | "done"
+let remainingTime = 0;
 let audioCtx = null;
 
 function getAudioContext() {
@@ -532,6 +561,14 @@ function goToExercise(index) {
   render();
 }
 
+function toEmbedUrl(url) {
+  const watch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  if (watch) return { src: "https://www.youtube.com/embed/" + watch[1], isShort: false };
+  const short = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/);
+  if (short) return { src: "https://www.youtube.com/embed/" + short[1], isShort: true };
+  return { src: url, isShort: false };
+}
+
 function render() {
   const item = routine[i];
 
@@ -545,9 +582,12 @@ function render() {
 
   const linkEl = document.getElementById("link");
   if (item.link) {
-    linkEl.href = item.link;
-    linkEl.style.display = "inline-flex";
+    const { src, isShort } = toEmbedUrl(item.link);
+    linkEl.src = src;
+    linkEl.className = "video-embed " + (isShort ? "short" : "regular");
+    linkEl.style.display = "block";
   } else {
+    linkEl.src = "";
     linkEl.style.display = "none";
   }
 
@@ -560,39 +600,90 @@ function render() {
     repSection.style.display = "none";
   }
 
+  const timerControls = document.getElementById("timer-controls");
   if (item.timer) {
+    currentSet = 1;
+    remainingTime = item.timer;
+    timerState = "idle";
+    document.getElementById("main").innerText = remainingTime + "s";
     document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
-    startTimer(item.timer);
+    timerControls.style.display = "block";
+    setTimerButtonLabel();
   } else {
+    timerControls.style.display = "none";
     document.getElementById("main").innerText = item.main;
     document.getElementById("sub").innerText = "";
   }
 }
 
-function startTimer(seconds) {
-  if (intervalId) clearInterval(intervalId);
-  let time = seconds;
-  document.getElementById("main").innerText = time + "s";
+function setTimerButtonLabel() {
+  const labels = { idle: "Start", running: "Pause", paused: "Resume", done: "Start" };
+  document.getElementById("timer-btn").innerText = labels[timerState];
+}
+
+function toggleTimer() {
+  getAudioContext();
+  const item = routine[i];
+  if (!item.timer) return;
+
+  if (timerState === "running") {
+    clearInterval(intervalId);
+    intervalId = null;
+    timerState = "paused";
+  } else if (timerState === "done") {
+    currentSet = 1;
+    remainingTime = item.timer;
+    document.getElementById("main").innerText = remainingTime + "s";
+    document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+    timerState = "running";
+    runTimer();
+  } else {
+    timerState = "running";
+    runTimer();
+  }
+  setTimerButtonLabel();
+}
+
+function runTimer() {
+  const item = routine[i];
   intervalId = setInterval(function() {
-    time--;
-    if (time < 0) {
+    remainingTime--;
+    if (remainingTime < 0) {
       clearInterval(intervalId);
       intervalId = null;
       currentSet++;
-      if (currentSet <= routine[i].sets) {
+      if (currentSet <= item.sets) {
         playSetComplete();
-        document.getElementById("sub").innerText = "Set " + currentSet + " of " + routine[i].sets;
-        startTimer(seconds);
+        remainingTime = item.timer;
+        document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+        document.getElementById("main").innerText = remainingTime + "s";
+        runTimer();
       } else {
         playAllSetsComplete();
-        currentSet = 1;
         document.getElementById("main").innerText = "Done";
         document.getElementById("sub").innerText = "";
+        timerState = "done";
+        setTimerButtonLabel();
       }
     } else {
-      document.getElementById("main").innerText = time + "s";
+      document.getElementById("main").innerText = remainingTime + "s";
     }
   }, 1000);
+}
+
+function restartTimer() {
+  const item = routine[i];
+  if (!item.timer) return;
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+  currentSet = 1;
+  remainingTime = item.timer;
+  timerState = "idle";
+  document.getElementById("main").innerText = remainingTime + "s";
+  document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+  setTimerButtonLabel();
 }
 
 function countRep() {
