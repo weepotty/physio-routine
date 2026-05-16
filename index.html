@@ -22,18 +22,14 @@
     padding: 0 0 40px;
   }
 
-  /* ── Home screen ─────────────────────────────── */
-
-  #home-screen {
-    width: 100%;
-    max-width: 480px;
-  }
+  /* ── Home hero ───────────────────────────────── */
 
   .home-hero {
     background: linear-gradient(150deg, #1e2d5a 0%, #2d3f80 100%);
     padding: 48px 28px 36px;
     text-align: center;
     color: white;
+    width: 100%;
   }
 
   .home-hero h1 {
@@ -47,6 +43,86 @@
     font-size: 15px;
     opacity: 0.7;
     font-weight: 500;
+  }
+
+  /* ── Day picker screen ───────────────────────── */
+
+  #day-screen {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .day-cards {
+    background: white;
+    margin: -1px 16px 0;
+    border-radius: 18px;
+    box-shadow: 0 8px 30px rgba(30, 45, 90, 0.13);
+    overflow: hidden;
+    position: relative;
+    top: -16px;
+  }
+
+  .day-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f2f8;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .day-card:last-child {
+    border-bottom: none;
+  }
+
+  .day-card:hover,
+  .day-card:active {
+    background: #f5f7ff;
+  }
+
+  .day-pill {
+    flex-shrink: 0;
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  .day-pill-1 {
+    background: #eef0fd;
+    color: #3d52c7;
+  }
+
+  .day-pill-2 {
+    background: #eef8fd;
+    color: #1a7fa6;
+  }
+
+  .day-info {
+    flex: 1;
+  }
+
+  .day-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1f36;
+    margin-bottom: 2px;
+  }
+
+  .day-sub {
+    font-size: 13px;
+    color: #8892c0;
+  }
+
+  /* ── Exercise list screen ────────────────────── */
+
+  #list-screen {
+    width: 100%;
+    max-width: 480px;
   }
 
   .home-list-card {
@@ -109,6 +185,24 @@
     line-height: 1;
   }
 
+  .btn-back-to-days {
+    display: block;
+    text-align: center;
+    width: calc(100% - 32px);
+    margin: 8px 16px 0;
+    padding: 12px;
+    font-size: 14px;
+    color: #8892c0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .btn-back-to-days:hover {
+    color: #4a5280;
+  }
+
   /* ── Exercise screen ─────────────────────────── */
 
   #exercise-screen {
@@ -125,7 +219,6 @@
     overflow: hidden;
   }
 
-  /* Progress bar */
   .progress-bar-track {
     height: 4px;
     background: #eef0fd;
@@ -138,7 +231,6 @@
     transition: width 0.35s ease;
   }
 
-  /* Card header row */
   .card-header {
     display: flex;
     align-items: center;
@@ -171,7 +263,6 @@
     letter-spacing: 0.3px;
   }
 
-  /* Card body */
   .card-body {
     padding: 12px 24px 24px;
     text-align: center;
@@ -210,7 +301,6 @@
     margin-bottom: 4px;
   }
 
-  /* Rep section */
   .rep-section {
     margin-top: 16px;
   }
@@ -262,7 +352,6 @@
     color: #7a82a6;
   }
 
-  /* Timer controls */
   .btn-timer {
     width: 140px;
     padding: 14px 24px;
@@ -285,7 +374,6 @@
     box-shadow: 0 6px 18px rgba(79, 99, 210, 0.38);
   }
 
-  /* Embedded video */
   .video-embed {
     display: block;
     width: 100%;
@@ -308,7 +396,6 @@
     margin-right: auto;
   }
 
-  /* Nav */
   .nav {
     display: flex;
     gap: 10px;
@@ -378,68 +465,44 @@
 
 <body>
 
-<!-- Home screen -->
-<div id="home-screen">
+<!-- Day picker screen -->
+<div id="day-screen">
   <div class="home-hero">
     <h1>Fix My Hip</h1>
-    <p>10 exercises</p>
+    <p>Two-day programme</p>
   </div>
-  <div class="home-list-card">
-    <div class="exercise-item" data-index="0" onclick="goToExercise(0)">
-      <span class="exercise-badge">1</span>
-      <span class="exercise-item-title">Hip mobility</span>
+  <div class="day-cards">
+    <div class="day-card" onclick="selectDay('day1')">
+      <div class="day-pill day-pill-1">Day 1</div>
+      <div class="day-info">
+        <div class="day-title">Plyometrics</div>
+        <div class="day-sub">Drop jumps · Skaters · Squat jumps</div>
+      </div>
       <span class="exercise-chevron">›</span>
     </div>
-    <div class="exercise-item" data-index="1" onclick="goToExercise(1)">
-      <span class="exercise-badge">2</span>
-      <span class="exercise-item-title">Hip rolling</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="2" onclick="goToExercise(2)">
-      <span class="exercise-badge">3</span>
-      <span class="exercise-item-title">Glute bridge single leg</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="3" onclick="goToExercise(3)">
-      <span class="exercise-badge">4</span>
-      <span class="exercise-item-title">Single leg squat</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="4" onclick="goToExercise(4)">
-      <span class="exercise-badge">5</span>
-      <span class="exercise-item-title">Copenhagen plank</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="5" onclick="goToExercise(5)">
-      <span class="exercise-badge">6</span>
-      <span class="exercise-item-title">Split stance hinge</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="6" onclick="goToExercise(6)">
-      <span class="exercise-badge">7</span>
-      <span class="exercise-item-title">Drop jump</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="7" onclick="goToExercise(7)">
-      <span class="exercise-badge">8</span>
-      <span class="exercise-item-title">Hip 90/90</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="8" onclick="goToExercise(8)">
-      <span class="exercise-badge">9</span>
-      <span class="exercise-item-title">Pigeon pose</span>
-      <span class="exercise-chevron">›</span>
-    </div>
-    <div class="exercise-item" data-index="9" onclick="goToExercise(9)">
-      <span class="exercise-badge">10</span>
-      <span class="exercise-item-title">Butterfly stretch</span>
+    <div class="day-card" onclick="selectDay('day2')">
+      <div class="day-pill day-pill-2">Day 2</div>
+      <div class="day-info">
+        <div class="day-title">Strength</div>
+        <div class="day-sub">Single leg squat · Copenhagen · Hip flexor</div>
+      </div>
       <span class="exercise-chevron">›</span>
     </div>
   </div>
 </div>
 
+<!-- Exercise list screen -->
+<div id="list-screen" style="display:none">
+  <div class="home-hero">
+    <h1 id="list-day-title"></h1>
+    <p id="list-day-sub"></p>
+  </div>
+  <div class="home-list-card" id="exercise-list"></div>
+  <button class="btn-back-to-days" onclick="goToDayPicker()">← Change day</button>
+</div>
+
 <!-- Exercise screen -->
-<div id="exercise-screen">
+<div id="exercise-screen" style="display:none">
   <div class="card">
     <div class="progress-bar-track">
       <div class="progress-bar-fill" id="progress-bar-fill"></div>
@@ -479,21 +542,33 @@
 </div>
 
 <script>
-const routine = [
-  {title: "Hip mobility", desc: "Stay within pain free range", main: "2–3 mins"},
-  {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3", countReps: true},
-  {title: "Glute bridge single leg", desc: "With foam roller", main: "10–12 reps x 3 each side", countReps: true},
-  {title: "Single leg squat", desc: "With weight (3kg or equivalent)", main: "8–10 reps x 3 each side", countReps: true, link: "https://www.youtube.com/watch?v=7oHiAdRQbyc"},
-  {title: "Copenhagen plank", desc: "Bent knee — straight line from shoulder, hip and knee", timer: 10, sets: 8, link: "https://www.youtube.com/shorts/doyRE40wurU"},
-  {title: "Split stance hinge", desc: "Weight on front leg, hinge at hips until you feel a stretch", main: "10–12 reps x 3 each side", countReps: true, link: "https://www.youtube.com/watch?v=rtCk4T6eRNg"},
-  {title: "Drop jump", desc: "Step off, land and rebound as quickly and as high as possible", main: "6–8 reps x 2 sets", countReps: true, link: "https://www.youtube.com/watch?v=LrZuW-sJPBo"},
-  {title: "Hip 90/90", desc: "Focus on 90/90 position", main: "1–2 mins", link: "https://www.youtube.com/shorts/PaAsDR0jyPQ"},
-  {title: "Pigeon pose", desc: "Stretch back leg further to feel stretch at front of hip too", main: "1–2 mins each side", link: "https://www.youtube.com/shorts/pjmR5Kacu1w"},
-  {title: "Butterfly stretch", desc: "Adductors", main: "1–2 mins", link: "https://www.youtube.com/shorts/1ZbyKG0LoSc"}
+const mobility = [
+  {title: "Hip 90/90", desc: "Focus on the 90/90 position", main: "1–2 mins", link: "https://www.youtube.com/shorts/PaAsDR0jyPQ"},
+  {title: "Pigeon pose", desc: "Stretch back leg further to feel a stretch at the front of the hip too", main: "1–2 mins each side", link: "https://www.youtube.com/shorts/pjmR5Kacu1w"},
+  {title: "Butterfly stretch", desc: "Adductor stretch", main: "1–2 mins", link: "https://www.youtube.com/shorts/1ZbyKG0LoSc"}
 ];
+
+const routines = {
+  day1: [
+    {title: "Single leg drop jump", desc: "Single leg — step off, land and rebound as quickly and as high as possible", main: "10 reps x 2 sets both sides", countReps: true, link: "https://www.youtube.com/shorts/RCsTwGzAq2w"},
+    {title: "Skaters", desc: "Push with adductors, jump to one side, land and repeat the other side. Push further as you get more confident", main: "16 reps x 2 sets", countReps: true, link: "https://www.youtube.com/shorts/IkGOdk2VDJw"},
+    {title: "Squat jumps", desc: "Double leg jump as high as you can, land in a deep squat to absorb force and repeat", main: "10 reps x 2 sets", countReps: true},
+    {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3", countReps: true},
+    ...mobility
+  ],
+  day2: [
+    {title: "Single leg squat with weight", desc: "Use 5kg or a bottle; increase weight as it gets easier", main: "8–10 reps x 3 both sides", countReps: true, link: "https://www.youtube.com/watch?v=7oHiAdRQbyc"},
+    {title: "Mid knee Copenhagen", desc: "Set up on bench with mid shin. Straight line from shoulder, hip and knee. Use adductors and opposite obliques. Increase hold time as it gets easier", timer: 10, sets: 8, link: "https://www.youtube.com/watch?v=CxDEpYh6oQI"},
+    {title: "Weighted hip flexor raise", desc: "Shopping bag with bottle or can. Hold 2–3 seconds per rep", main: "8 reps x 2 sets both sides", countReps: true, link: "https://www.youtube.com/shorts/KoQrZsENTNQ"},
+    {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3", countReps: true},
+    ...mobility
+  ]
+};
 
 const REST_SECONDS = 5;
 
+let routine = [];
+let activeDay = null;
 let i = 0;
 let currentSet = 1;
 let repCount = 0;
@@ -547,8 +622,17 @@ function playGo() {
 }
 
 function showScreen(screenId) {
-  document.getElementById("home-screen").style.display = screenId === "home" ? "block" : "none";
+  document.getElementById("day-screen").style.display = screenId === "day" ? "block" : "none";
+  document.getElementById("list-screen").style.display = screenId === "list" ? "block" : "none";
   document.getElementById("exercise-screen").style.display = screenId === "exercise" ? "block" : "none";
+}
+
+function goToDayPicker() {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+  showScreen("day");
 }
 
 function goHome() {
@@ -556,7 +640,29 @@ function goHome() {
     clearInterval(intervalId);
     intervalId = null;
   }
-  showScreen("home");
+  showScreen("list");
+}
+
+function selectDay(day) {
+  activeDay = day;
+  routine = routines[day];
+  renderList();
+  showScreen("list");
+}
+
+function renderList() {
+  const titles = { day1: "Day 1 · Plyometrics", day2: "Day 2 · Strength" };
+  document.getElementById("list-day-title").innerText = titles[activeDay];
+  document.getElementById("list-day-sub").innerText = routine.length + " exercises";
+
+  const listEl = document.getElementById("exercise-list");
+  listEl.innerHTML = routine.map(function(ex, idx) {
+    return '<div class="exercise-item" onclick="goToExercise(' + idx + ')">'
+      + '<span class="exercise-badge">' + (idx + 1) + '</span>'
+      + '<span class="exercise-item-title">' + ex.title + '</span>'
+      + '<span class="exercise-chevron">›</span>'
+      + '</div>';
+  }).join("");
 }
 
 function goToExercise(index) {
@@ -623,6 +729,16 @@ function render() {
     document.getElementById("main").innerText = item.main;
     document.getElementById("sub").innerText = "";
   }
+}
+
+function formatTime(seconds) {
+  const item = routine[i];
+  if (item.timer >= 60) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+  return seconds + "s";
 }
 
 function setTimerButtonLabel() {
@@ -750,7 +866,11 @@ function next() {
     clearInterval(intervalId);
     intervalId = null;
   }
-  i = (i + 1) % routine.length;
+  if (i >= routine.length - 1) {
+    goHome();
+    return;
+  }
+  i++;
   currentSet = 1;
   render();
 }
@@ -764,7 +884,7 @@ function prev() {
     goHome();
     return;
   }
-  i = i - 1;
+  i--;
   currentSet = 1;
   render();
 }
@@ -779,7 +899,7 @@ function restart() {
   render();
 }
 
-showScreen("home");
+showScreen("day");
 </script>
 
 </body>
