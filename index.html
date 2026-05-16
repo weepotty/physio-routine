@@ -648,6 +648,8 @@ let repCurrentSet = 1;
 let repSetsDone = false;
 let voiceMode = false;
 let recognition = null;
+let recognitionRunning = false;
+let restartTimeoutId = null;
 
 function getAudioContext() {
   if (!audioCtx) {
@@ -693,43 +695,109 @@ function playGo() {
   playTone(1175, now + 0.14, 0.18, ctx);
 }
 
+function updateVoiceButton(label) {
+  const btn = document.getElementById("voice-btn");
+  if (!btn) return;
+  if (voiceMode) {
+    btn.innerText = label || "Listening…";
+    btn.classList.add("listening");
+  } else {
+    btn.innerText = "🎙 Voice";
+    btn.classList.remove("listening");
+  }
+}
+
 function initRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return null;
   const r = new SR();
   r.continuous = true;
-  r.interimResults = false;
-  r.onresult = function() { countRep(); };
-  // iOS stops recognition after silence — restart automatically while still in voice mode
-  r.onend = function() {
-    if (voiceMode) { try { r.start(); } catch(e) {} }
+  r.interimResults = true;
+  r.lang = "en-GB";
+
+  let lastFinalIndex = -1;
+  r.onresult = function(event) {
+    for (let idx = event.resultIndex; idx < event.results.length; idx++) {
+      if (event.results[idx].isFinal && idx > lastFinalIndex) {
+        lastFinalIndex = idx;
+        countRep();
+      }
+    }
   };
+
+  r.onstart = function() {
+    recognitionRunning = true;
+    updateVoiceButton();
+  };
+
+  r.onerror = function(event) {
+    const err = event && event.error;
+    if (err === "not-allowed" || err === "service-not-allowed") {
+      voiceMode = false;
+      updateVoiceButton();
+      alert("Microphone permission denied. Enable mic access in your browser settings.");
+      return;
+    }
+    if (err === "audio-capture") {
+      voiceMode = false;
+      updateVoiceButton();
+      alert("No microphone was found.");
+      return;
+    }
+    // no-speech, aborted, network — let onend handle the next step
+  };
+
+  // Browsers stop recognition after silence — restart while still in voice mode
+  r.onend = function() {
+    recognitionRunning = false;
+    lastFinalIndex = -1;
+    if (!voiceMode) {
+      updateVoiceButton();
+      return;
+    }
+    if (restartTimeoutId) clearTimeout(restartTimeoutId);
+    restartTimeoutId = setTimeout(function() {
+      restartTimeoutId = null;
+      if (!voiceMode || recognitionRunning) return;
+      try {
+        r.start();
+      } catch (e) {
+        voiceMode = false;
+        updateVoiceButton();
+      }
+    }, 250);
+  };
+
   return r;
 }
 
 function toggleVoice() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert("Voice recognition is not supported in this browser."); return; }
-  voiceMode = !voiceMode;
-  const btn = document.getElementById("voice-btn");
-  if (voiceMode) {
-    if (!recognition) recognition = initRecognition();
-    try { recognition.start(); } catch(e) {}
-    btn.innerText = "Listening…";
-    btn.classList.add("listening");
-  } else {
-    stopVoice();
+  if (voiceMode) { stopVoice(); return; }
+  voiceMode = true;
+  if (!recognition) recognition = initRecognition();
+  updateVoiceButton("Starting…");
+  try {
+    recognition.start();
+  } catch (e) {
+    // InvalidStateError when already running — treat as already listening
+    if (!recognitionRunning) {
+      voiceMode = false;
+      updateVoiceButton();
+      alert("Could not start voice recognition. Try again.");
+    }
   }
 }
 
 function stopVoice() {
   voiceMode = false;
-  if (recognition) { try { recognition.stop(); } catch(e) {} }
-  const btn = document.getElementById("voice-btn");
-  if (btn) {
-    btn.innerText = "🎙️ Voice";
-    btn.classList.remove("listening");
+  if (restartTimeoutId) { clearTimeout(restartTimeoutId); restartTimeoutId = null; }
+  if (recognition) {
+    try { recognition.abort(); } catch(e) {}
   }
+  recognitionRunning = false;
+  updateVoiceButton();
 }
 
 function showScreen(screenId) {
