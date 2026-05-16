@@ -12,6 +12,10 @@
   }
 
   body {
+    touch-action: manipulation;
+  }
+
+  body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     background: linear-gradient(160deg, #f0f4ff 0%, #e8f0fe 100%);
     min-height: 100vh;
@@ -353,6 +357,25 @@
     color: #7a82a6;
   }
 
+  .rep-set-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8892c0;
+    letter-spacing: 0.3px;
+    min-height: 20px;
+    margin-bottom: 8px;
+  }
+
+  .rep-set-complete {
+    color: #22c55e;
+    font-size: 15px;
+  }
+
+  .rep-btn.done {
+    background: linear-gradient(145deg, #22c55e, #16a34a);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
+  }
+
   .btn-timer {
     width: 140px;
     padding: 14px 24px;
@@ -519,7 +542,7 @@
       <p id="sub"></p>
 
       <div id="rep-section" class="rep-section" style="display:none">
-        <p class="rep-label">Tap to count</p>
+        <p id="rep-set-text" class="rep-set-text"></p>
         <button class="rep-btn" onclick="countRep()" id="rep-btn">0</button>
         <button class="rep-reset" onclick="resetRep()">reset</button>
       </div>
@@ -544,24 +567,24 @@
 
 <script>
 const mobility = [
-  {title: "Hip 90/90", desc: "Focus on the 90/90 position", main: "1–2 mins", link: "https://www.youtube.com/shorts/PaAsDR0jyPQ"},
-  {title: "Pigeon pose", desc: "Stretch back leg further to feel a stretch at the front of the hip too", main: "1–2 mins each side", link: "https://www.youtube.com/shorts/pjmR5Kacu1w"},
-  {title: "Butterfly stretch", desc: "Adductor stretch", main: "1–2 mins", link: "https://www.youtube.com/shorts/1ZbyKG0LoSc"}
+  {title: "Hip 90/90", desc: "Focus on the 90/90 position", main: "1–2 mins", countdown: 90, link: "https://www.youtube.com/shorts/PaAsDR0jyPQ"},
+  {title: "Pigeon pose", desc: "Stretch back leg further to feel a stretch at the front of the hip too", main: "1–2 mins each side", countdown: 90, link: "https://www.youtube.com/shorts/pjmR5Kacu1w"},
+  {title: "Butterfly stretch", desc: "Adductor stretch", main: "1–2 mins", countdown: 90, link: "https://www.youtube.com/shorts/1ZbyKG0LoSc"}
 ];
 
 const routines = {
   day1: [
-    {title: "Single leg drop jump", desc: "Single leg — step off, land and rebound as quickly and as high as possible", main: "10 reps x 2 sets both sides", countReps: true, link: "https://www.youtube.com/shorts/RCsTwGzAq2w"},
-    {title: "Skaters", desc: "Push with adductors, jump to one side, land and repeat the other side. Push further as you get more confident", main: "16 reps x 2 sets", countReps: true, link: "https://www.youtube.com/shorts/IkGOdk2VDJw"},
-    {title: "Squat jumps", desc: "Double leg jump as high as you can, land in a deep squat to absorb force and repeat", main: "10 reps x 2 sets", countReps: true},
-    {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3", countReps: true},
+    {title: "Single leg drop jump", desc: "Single leg — step off, land and rebound as quickly and as high as possible", main: "10 reps x 2 sets both sides", reps: 10, repSets: 2, countReps: true, link: "https://www.youtube.com/shorts/RCsTwGzAq2w"},
+    {title: "Skaters", desc: "Push with adductors, jump to one side, land and repeat the other side. Push further as you get more confident", main: "16 reps x 2 sets", reps: 16, repSets: 2, countReps: true, link: "https://www.youtube.com/shorts/IkGOdk2VDJw"},
+    {title: "Squat jumps", desc: "Double leg jump as high as you can, land in a deep squat to absorb force and repeat", main: "10 reps x 2 sets", reps: 10, repSets: 2, countReps: true},
+    {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3", reps: 10, repSets: 3, countReps: true},
     ...mobility
   ],
   day2: [
-    {title: "Single leg squat with weight", desc: "Use 5kg or a bottle; increase weight as it gets easier", main: "8–10 reps x 3 both sides", countReps: true, link: "https://www.youtube.com/watch?v=7oHiAdRQbyc"},
+    {title: "Single leg squat with weight", desc: "Use 5kg or a bottle; increase weight as it gets easier", main: "8–10 reps x 3 both sides", reps: 10, repSets: 3, countReps: true, link: "https://www.youtube.com/watch?v=7oHiAdRQbyc"},
     {title: "Mid knee Copenhagen", desc: "Set up on bench with mid shin. Straight line from shoulder, hip and knee. Use adductors and opposite obliques. Increase hold time as it gets easier", timer: 10, sets: 8, link: "https://www.youtube.com/watch?v=CxDEpYh6oQI"},
-    {title: "Weighted hip flexor raise", desc: "Shopping bag with bottle or can. Hold 2–3 seconds per rep", main: "8 reps x 2 sets both sides", countReps: true, link: "https://www.youtube.com/shorts/KoQrZsENTNQ"},
-    {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3", countReps: true},
+    {title: "Weighted hip flexor raise", desc: "Shopping bag with bottle or can. Hold 2–3 seconds per rep", main: "8 reps x 2 sets both sides", reps: 8, repSets: 2, countReps: true, link: "https://www.youtube.com/shorts/KoQrZsENTNQ"},
+    {title: "Hip rolling", desc: "Foam roller from pelvis, alternating with side lying", main: "10 reps x 3", reps: 10, repSets: 3, countReps: true},
     ...mobility
   ]
 };
@@ -577,6 +600,8 @@ let intervalId = null;
 let timerState = "idle"; // "idle" | "running" | "paused" | "resting" | "done"
 let remainingTime = 0;
 let audioCtx = null;
+let repCurrentSet = 1;
+let repSetsDone = false;
 
 function getAudioContext() {
   if (!audioCtx) {
@@ -710,31 +735,42 @@ function render() {
   const repSection = document.getElementById("rep-section");
   if (item.countReps) {
     repCount = 0;
-    document.getElementById("rep-btn").innerText = "0";
+    repCurrentSet = 1;
+    repSetsDone = false;
+    const repBtn = document.getElementById("rep-btn");
+    repBtn.innerText = "0";
+    repBtn.classList.remove("done");
+    const repSetText = document.getElementById("rep-set-text");
+    repSetText.innerText = item.repSets ? "Set 1 of " + item.repSets : "";
+    repSetText.className = "rep-set-text";
     repSection.style.display = "block";
   } else {
     repSection.style.display = "none";
   }
 
   const timerControls = document.getElementById("timer-controls");
-  if (item.timer) {
+  const isTimerEx = item.timer || item.countdown;
+  if (isTimerEx) {
+    const duration = item.timer || item.countdown;
+    const numSets = item.sets || 1;
     currentSet = 1;
-    remainingTime = item.timer;
+    remainingTime = duration;
     timerState = "idle";
-    document.getElementById("main").innerText = remainingTime + "s";
-    document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+    document.getElementById("main").innerText = formatTime(remainingTime);
+    document.getElementById("sub").innerText = numSets > 1 ? "Set " + currentSet + " of " + numSets : (item.main || "");
     timerControls.style.display = "block";
     setTimerButtonLabel();
   } else {
     timerControls.style.display = "none";
-    document.getElementById("main").innerText = item.main;
+    document.getElementById("main").innerText = item.main || "";
     document.getElementById("sub").innerText = "";
   }
 }
 
 function formatTime(seconds) {
   const item = routine[i];
-  if (item.timer >= 60) {
+  const duration = item.timer || item.countdown || 0;
+  if (duration >= 60) {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return m + ":" + (s < 10 ? "0" : "") + s;
@@ -756,7 +792,9 @@ function setTimerButtonLabel() {
 function toggleTimer() {
   getAudioContext();
   const item = routine[i];
-  if (!item.timer) return;
+  if (!item.timer && !item.countdown) return;
+  const duration = item.timer || item.countdown;
+  const numSets = item.sets || 1;
 
   if (timerState === "running") {
     clearInterval(intervalId);
@@ -769,9 +807,9 @@ function toggleTimer() {
     finishRest();
   } else if (timerState === "done") {
     currentSet = 1;
-    remainingTime = item.timer;
-    document.getElementById("main").innerText = remainingTime + "s";
-    document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+    remainingTime = duration;
+    document.getElementById("main").innerText = formatTime(remainingTime);
+    document.getElementById("sub").innerText = numSets > 1 ? "Set " + currentSet + " of " + numSets : (item.main || "");
     timerState = "running";
     runTimer();
     setTimerButtonLabel();
@@ -790,7 +828,7 @@ function runTimer() {
       clearInterval(intervalId);
       intervalId = null;
       currentSet++;
-      if (currentSet <= item.sets) {
+      if (currentSet <= (item.sets || 1)) {
         playSetComplete();
         startRest();
       } else {
@@ -801,7 +839,7 @@ function runTimer() {
         setTimerButtonLabel();
       }
     } else {
-      document.getElementById("main").innerText = remainingTime + "s";
+      document.getElementById("main").innerText = formatTime(remainingTime);
     }
   }, 1000);
 }
@@ -827,10 +865,11 @@ function startRest() {
 
 function finishRest() {
   const item = routine[i];
-  remainingTime = item.timer;
+  const numSets = item.sets || 1;
+  remainingTime = item.timer || item.countdown;
   timerState = "running";
-  document.getElementById("main").innerText = remainingTime + "s";
-  document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+  document.getElementById("main").innerText = formatTime(remainingTime);
+  document.getElementById("sub").innerText = numSets > 1 ? "Set " + currentSet + " of " + numSets : (item.main || "");
   setTimerButtonLabel();
   playGo();
   runTimer();
@@ -838,28 +877,59 @@ function finishRest() {
 
 function restartTimer() {
   const item = routine[i];
-  if (!item.timer) return;
+  if (!item.timer && !item.countdown) return;
+  const duration = item.timer || item.countdown;
+  const numSets = item.sets || 1;
   if (intervalId) {
     clearInterval(intervalId);
     intervalId = null;
   }
   currentSet = 1;
-  remainingTime = item.timer;
+  remainingTime = duration;
   timerState = "idle";
-  document.getElementById("main").innerText = remainingTime + "s";
-  document.getElementById("sub").innerText = "Set " + currentSet + " of " + item.sets;
+  document.getElementById("main").innerText = formatTime(remainingTime);
+  document.getElementById("sub").innerText = numSets > 1 ? "Set " + currentSet + " of " + numSets : (item.main || "");
   setTimerButtonLabel();
 }
 
 function countRep() {
+  if (repSetsDone) return;
   getAudioContext();
   repCount++;
   document.getElementById("rep-btn").innerText = repCount;
+
+  const item = routine[i];
+  if (!item.reps) return;
+
+  if (repCount >= item.reps) {
+    const repSetText = document.getElementById("rep-set-text");
+    if (item.repSets && repCurrentSet < item.repSets) {
+      playSetComplete();
+      repCurrentSet++;
+      repCount = 0;
+      document.getElementById("rep-btn").innerText = "0";
+      repSetText.innerText = "Set " + repCurrentSet + " of " + item.repSets;
+    } else {
+      playAllSetsComplete();
+      repSetsDone = true;
+      document.getElementById("rep-btn").classList.add("done");
+      repSetText.innerText = "All done!";
+      repSetText.className = "rep-set-text rep-set-complete";
+    }
+  }
 }
 
 function resetRep() {
+  const item = routine[i];
   repCount = 0;
-  document.getElementById("rep-btn").innerText = "0";
+  repCurrentSet = 1;
+  repSetsDone = false;
+  const repBtn = document.getElementById("rep-btn");
+  repBtn.innerText = "0";
+  repBtn.classList.remove("done");
+  const repSetText = document.getElementById("rep-set-text");
+  repSetText.innerText = item.repSets ? "Set 1 of " + item.repSets : "";
+  repSetText.className = "rep-set-text";
 }
 
 function next() {
