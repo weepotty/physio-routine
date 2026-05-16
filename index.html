@@ -647,9 +647,15 @@ let audioCtx = null;
 let repCurrentSet = 1;
 let repSetsDone = false;
 let voiceMode = false;
-let recognition = null;
-let recognitionRunning = false;
-let restartTimeoutId = null;
+let micStream = null;
+let micSource = null;
+let micAnalyser = null;
+let micDataArray = null;
+let micRafId = null;
+let lastTriggerAt = 0;
+// RMS threshold (0–1) — louder than ambient room noise but easy to hit with a clap or grunt
+const SOUND_THRESHOLD = 0.08;
+const TRIGGER_COOLDOWN_MS = 350;
 
 function getAudioContext() {
   if (!audioCtx) {
@@ -707,96 +713,74 @@ function updateVoiceButton(label) {
   }
 }
 
-function initRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return null;
-  const r = new SR();
-  r.continuous = true;
-  r.interimResults = true;
-  r.lang = "en-GB";
-
-  let lastFinalIndex = -1;
-  r.onresult = function(event) {
-    for (let idx = event.resultIndex; idx < event.results.length; idx++) {
-      if (event.results[idx].isFinal && idx > lastFinalIndex) {
-        lastFinalIndex = idx;
-        countRep();
-      }
-    }
-  };
-
-  r.onstart = function() {
-    recognitionRunning = true;
-    updateVoiceButton();
-  };
-
-  r.onerror = function(event) {
-    const err = event && event.error;
-    if (err === "not-allowed" || err === "service-not-allowed") {
-      voiceMode = false;
-      updateVoiceButton();
-      alert("Microphone permission denied. Enable mic access in your browser settings.");
-      return;
-    }
-    if (err === "audio-capture") {
-      voiceMode = false;
-      updateVoiceButton();
-      alert("No microphone was found.");
-      return;
-    }
-    // no-speech, aborted, network — let onend handle the next step
-  };
-
-  // Browsers stop recognition after silence — restart while still in voice mode
-  r.onend = function() {
-    recognitionRunning = false;
-    lastFinalIndex = -1;
-    if (!voiceMode) {
-      updateVoiceButton();
-      return;
-    }
-    if (restartTimeoutId) clearTimeout(restartTimeoutId);
-    restartTimeoutId = setTimeout(function() {
-      restartTimeoutId = null;
-      if (!voiceMode || recognitionRunning) return;
-      try {
-        r.start();
-      } catch (e) {
-        voiceMode = false;
-        updateVoiceButton();
-      }
-    }, 250);
-  };
-
-  return r;
+function tickVolume() {
+  if (!voiceMode || !micAnalyser) return;
+  micAnalyser.getByteTimeDomainData(micDataArray);
+  let sumSquares = 0;
+  for (let i = 0; i < micDataArray.length; i++) {
+    const v = (micDataArray[i] - 128) / 128;
+    sumSquares += v * v;
+  }
+  const rms = Math.sqrt(sumSquares / micDataArray.length);
+  const now = performance.now();
+  if (rms > SOUND_THRESHOLD && now - lastTriggerAt > TRIGGER_COOLDOWN_MS) {
+    lastTriggerAt = now;
+    countRep();
+  }
+  micRafId = requestAnimationFrame(tickVolume);
 }
 
-function toggleVoice() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert("Voice recognition is not supported in this browser."); return; }
+async function toggleVoice() {
   if (voiceMode) { stopVoice(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("Microphone access is not supported in this browser.");
+    return;
+  }
   voiceMode = true;
-  if (!recognition) recognition = initRecognition();
   updateVoiceButton("Starting…");
   try {
-    recognition.start();
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch (e) {
-    // InvalidStateError when already running — treat as already listening
-    if (!recognitionRunning) {
-      voiceMode = false;
-      updateVoiceButton();
-      alert("Could not start voice recognition. Try again.");
+    voiceMode = false;
+    updateVoiceButton();
+    if (e && e.name === "NotAllowedError") {
+      alert("Microphone permission denied. Enable mic access in your browser settings.");
+    } else {
+      alert("Could not access the microphone.");
     }
+    return;
   }
+  if (!voiceMode) {
+    // User toggled off while permission prompt was open
+    micStream.getTracks().forEach(function(t) { t.stop(); });
+    micStream = null;
+    return;
+  }
+  const ctx = getAudioContext();
+  if (ctx.state === "suspended") {
+    try { await ctx.resume(); } catch(e) {}
+  }
+  micSource = ctx.createMediaStreamSource(micStream);
+  micAnalyser = ctx.createAnalyser();
+  micAnalyser.fftSize = 1024;
+  micAnalyser.smoothingTimeConstant = 0.2;
+  micSource.connect(micAnalyser);
+  micDataArray = new Uint8Array(micAnalyser.fftSize);
+  lastTriggerAt = 0;
+  updateVoiceButton();
+  tickVolume();
 }
 
 function stopVoice() {
   voiceMode = false;
-  if (restartTimeoutId) { clearTimeout(restartTimeoutId); restartTimeoutId = null; }
-  if (recognition) {
-    try { recognition.abort(); } catch(e) {}
+  if (micRafId) { cancelAnimationFrame(micRafId); micRafId = null; }
+  if (micSource) { try { micSource.disconnect(); } catch(e) {} micSource = null; }
+  micAnalyser = null;
+  micDataArray = null;
+  if (micStream) {
+    micStream.getTracks().forEach(function(t) { t.stop(); });
+    micStream = null;
   }
-  recognitionRunning = false;
   updateVoiceButton();
 }
 
@@ -893,7 +877,7 @@ function render() {
     repSetText.innerText = item.repSets ? "Set 1 of " + item.repSets : "";
     repSetText.className = "rep-set-text";
     const voiceBtn = document.getElementById("voice-btn");
-    voiceBtn.style.display = (window.SpeechRecognition || window.webkitSpeechRecognition) ? "block" : "none";
+    voiceBtn.style.display = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) ? "block" : "none";
     repSection.style.display = "block";
   } else {
     stopVoice();
