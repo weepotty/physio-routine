@@ -653,8 +653,8 @@ let micAnalyser = null;
 let micDataArray = null;
 let micRafId = null;
 let lastTriggerAt = 0;
-// RMS threshold (0–1) — louder than ambient room noise but easy to hit with a clap or grunt
-const SOUND_THRESHOLD = 0.08;
+// Peak amplitude threshold (0–1) — louder than ambient room noise but easy to hit with a clap or grunt
+const SOUND_THRESHOLD = 0.15;
 const TRIGGER_COOLDOWN_MS = 350;
 
 function getAudioContext() {
@@ -716,14 +716,13 @@ function updateVoiceButton(label) {
 function tickVolume() {
   if (!voiceMode || !micAnalyser) return;
   micAnalyser.getByteTimeDomainData(micDataArray);
-  let sumSquares = 0;
+  let peak = 0;
   for (let i = 0; i < micDataArray.length; i++) {
-    const v = (micDataArray[i] - 128) / 128;
-    sumSquares += v * v;
+    const v = Math.abs(micDataArray[i] - 128) / 128;
+    if (v > peak) peak = v;
   }
-  const rms = Math.sqrt(sumSquares / micDataArray.length);
   const now = performance.now();
-  if (rms > SOUND_THRESHOLD && now - lastTriggerAt > TRIGGER_COOLDOWN_MS) {
+  if (peak > SOUND_THRESHOLD && now - lastTriggerAt > TRIGGER_COOLDOWN_MS) {
     lastTriggerAt = now;
     countRep();
   }
@@ -762,8 +761,8 @@ async function toggleVoice() {
   }
   micSource = ctx.createMediaStreamSource(micStream);
   micAnalyser = ctx.createAnalyser();
-  micAnalyser.fftSize = 1024;
-  micAnalyser.smoothingTimeConstant = 0.2;
+  micAnalyser.fftSize = 256;
+  micAnalyser.smoothingTimeConstant = 0;
   micSource.connect(micAnalyser);
   micDataArray = new Uint8Array(micAnalyser.fftSize);
   lastTriggerAt = 0;
