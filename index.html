@@ -376,6 +376,49 @@
     box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
   }
 
+  .btn-voice {
+    background: none;
+    color: #b0b8d8;
+    font-size: 13px;
+    padding: 6px 16px;
+    margin-top: 6px;
+    border: 1px solid #e8ebf5;
+    border-radius: 8px;
+    cursor: pointer;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .btn-voice:hover {
+    color: #7a82a6;
+    border-color: #c8cee0;
+  }
+
+  .btn-voice.listening {
+    color: #e53e3e;
+    border-color: #feb2b2;
+    background: #fff5f5;
+  }
+
+  @keyframes mic-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  .btn-voice.listening::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    background: #e53e3e;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: mic-pulse 1s infinite;
+  }
+
   .btn-timer {
     width: 140px;
     padding: 14px 24px;
@@ -545,6 +588,7 @@
         <p id="rep-set-text" class="rep-set-text"></p>
         <button class="rep-btn" onclick="countRep()" id="rep-btn">0</button>
         <button class="rep-reset" onclick="resetRep()">reset</button>
+        <button class="btn-voice" id="voice-btn" style="display:none" onclick="toggleVoice()">🎙 Voice</button>
       </div>
 
       <div id="timer-controls" class="rep-section" style="display:none">
@@ -602,6 +646,8 @@ let remainingTime = 0;
 let audioCtx = null;
 let repCurrentSet = 1;
 let repSetsDone = false;
+let voiceMode = false;
+let recognition = null;
 
 function getAudioContext() {
   if (!audioCtx) {
@@ -647,6 +693,45 @@ function playGo() {
   playTone(1175, now + 0.14, 0.18, ctx);
 }
 
+function initRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.continuous = true;
+  r.interimResults = false;
+  r.onresult = function() { countRep(); };
+  // iOS stops recognition after silence — restart automatically while still in voice mode
+  r.onend = function() {
+    if (voiceMode) { try { r.start(); } catch(e) {} }
+  };
+  return r;
+}
+
+function toggleVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("Voice recognition is not supported in this browser."); return; }
+  voiceMode = !voiceMode;
+  const btn = document.getElementById("voice-btn");
+  if (voiceMode) {
+    if (!recognition) recognition = initRecognition();
+    try { recognition.start(); } catch(e) {}
+    btn.innerText = "Listening…";
+    btn.classList.add("listening");
+  } else {
+    stopVoice();
+  }
+}
+
+function stopVoice() {
+  voiceMode = false;
+  if (recognition) { try { recognition.stop(); } catch(e) {} }
+  const btn = document.getElementById("voice-btn");
+  if (btn) {
+    btn.innerText = "🎙️ Voice";
+    btn.classList.remove("listening");
+  }
+}
+
 function showScreen(screenId) {
   document.getElementById("day-screen").style.display = screenId === "day" ? "block" : "none";
   document.getElementById("list-screen").style.display = screenId === "list" ? "block" : "none";
@@ -654,18 +739,14 @@ function showScreen(screenId) {
 }
 
 function goToDayPicker() {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  stopVoice();
   showScreen("day");
 }
 
 function goHome() {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  stopVoice();
   showScreen("list");
 }
 
@@ -743,8 +824,11 @@ function render() {
     const repSetText = document.getElementById("rep-set-text");
     repSetText.innerText = item.repSets ? "Set 1 of " + item.repSets : "";
     repSetText.className = "rep-set-text";
+    const voiceBtn = document.getElementById("voice-btn");
+    voiceBtn.style.display = (window.SpeechRecognition || window.webkitSpeechRecognition) ? "block" : "none";
     repSection.style.display = "block";
   } else {
+    stopVoice();
     repSection.style.display = "none";
   }
 
@@ -933,38 +1017,26 @@ function resetRep() {
 }
 
 function next() {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
-  if (i >= routine.length - 1) {
-    goHome();
-    return;
-  }
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  stopVoice();
+  if (i >= routine.length - 1) { goHome(); return; }
   i++;
   currentSet = 1;
   render();
 }
 
 function prev() {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
-  if (i === 0) {
-    goHome();
-    return;
-  }
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  stopVoice();
+  if (i === 0) { goHome(); return; }
   i--;
   currentSet = 1;
   render();
 }
 
 function restart() {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  stopVoice();
   i = 0;
   currentSet = 1;
   render();
