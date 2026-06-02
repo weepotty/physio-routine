@@ -623,7 +623,7 @@
       <div class="day-pill day-pill-run">Run</div>
       <div class="day-info">
         <div class="day-title">Run 1</div>
-        <div class="day-sub">Half-speed intervals · 24 min</div>
+        <div class="day-sub">Half-speed intervals · ~26 min</div>
       </div>
       <span class="exercise-chevron">›</span>
     </div>
@@ -905,6 +905,9 @@ function toggleRunTimer() {
     runState = "paused";
     renderRun();
   } else {
+    if (runState === "idle") {
+      speakPhase(runMode === "warmup" ? WARMUP_EXERCISES[warmupIndex] : runPhase);
+    }
     runState = "running";
     renderRun();
     runIntervalId = setInterval(runTick, 1000);
@@ -913,12 +916,11 @@ function toggleRunTimer() {
 
 function runTick() {
   runRemainingTime--;
-  if (runRemainingTime < 0) {
+  document.getElementById("run-countdown").innerText = formatRunTime(runRemainingTime);
+  if (runRemainingTime <= 0) {
     clearInterval(runIntervalId);
     runIntervalId = null;
     advanceRunPhase();
-  } else {
-    document.getElementById("run-countdown").innerText = formatRunTime(runRemainingTime);
   }
 }
 
