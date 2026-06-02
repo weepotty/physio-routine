@@ -851,9 +851,10 @@ function renderRun() {
   const nextHint = document.getElementById("run-next-hint");
   const btn = document.getElementById("run-btn");
   const restartBtn = document.getElementById("run-restart-btn");
+  const roundText = document.getElementById("run-round-text");
 
   if (runState === "done") {
-    document.getElementById("run-round-text").innerText = "Round " + RUN_ROUNDS + " of " + RUN_ROUNDS;
+    roundText.innerText = "Round " + RUN_ROUNDS + " of " + RUN_ROUNDS;
     phaseLabel.innerText = "Done!";
     phaseLabel.className = "run-phase-label run-phase-done";
     countdown.style.display = "none";
@@ -871,7 +872,7 @@ function renderRun() {
   btn.innerText = labels[runState] || "Start";
 
   if (runMode === "warmup") {
-    document.getElementById("run-round-text").innerText = "Warm-up " + (warmupIndex + 1) + " of " + WARMUP_EXERCISES.length;
+    roundText.innerText = "Warm-up " + (warmupIndex + 1) + " of " + WARMUP_EXERCISES.length;
     phaseLabel.innerText = WARMUP_EXERCISES[warmupIndex].toUpperCase();
     phaseLabel.className = "run-phase-label run-phase-warmup";
     countdown.innerText = formatRunTime(runRemainingTime);
@@ -882,7 +883,7 @@ function renderRun() {
       nextHint.innerText = "Run next \xb7 " + formatRunTime(RUN_SECONDS);
     }
   } else {
-    document.getElementById("run-round-text").innerText = "Round " + runRound + " of " + RUN_ROUNDS;
+    roundText.innerText = "Round " + runRound + " of " + RUN_ROUNDS;
     if (runPhase === "run") {
       phaseLabel.innerText = "RUN";
       phaseLabel.className = "run-phase-label run-phase-run";
