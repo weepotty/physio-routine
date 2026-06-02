@@ -897,6 +897,72 @@ function renderRun() {
   }
 }
 
+function toggleRunTimer() {
+  getAudioContext();
+  if (runState === "running") {
+    clearInterval(runIntervalId);
+    runIntervalId = null;
+    runState = "paused";
+    renderRun();
+  } else {
+    runState = "running";
+    renderRun();
+    runIntervalId = setInterval(runTick, 1000);
+  }
+}
+
+function runTick() {
+  runRemainingTime--;
+  if (runRemainingTime < 0) {
+    clearInterval(runIntervalId);
+    runIntervalId = null;
+    advanceRunPhase();
+  } else {
+    document.getElementById("run-countdown").innerText = formatRunTime(runRemainingTime);
+  }
+}
+
+function advanceRunPhase() {
+  if (runMode === "warmup") {
+    warmupIndex++;
+    if (warmupIndex < WARMUP_EXERCISES.length) {
+      runRemainingTime = WARMUP_SECONDS;
+      speakPhase(WARMUP_EXERCISES[warmupIndex]);
+      runState = "running";
+      renderRun();
+      runIntervalId = setInterval(runTick, 1000);
+    } else {
+      runMode = "intervals";
+      runPhase = "run";
+      runRound = 1;
+      runRemainingTime = RUN_SECONDS;
+      speakPhase("run");
+      runState = "running";
+      renderRun();
+      runIntervalId = setInterval(runTick, 1000);
+    }
+  } else if (runPhase === "run") {
+    runPhase = "walk";
+    runRemainingTime = WALK_SECONDS;
+    speakPhase("walk");
+    runState = "running";
+    renderRun();
+    runIntervalId = setInterval(runTick, 1000);
+  } else if (runRound < RUN_ROUNDS) {
+    runRound++;
+    runPhase = "run";
+    runRemainingTime = RUN_SECONDS;
+    speakPhase("run");
+    runState = "running";
+    renderRun();
+    runIntervalId = setInterval(runTick, 1000);
+  } else {
+    runState = "done";
+    speakPhase("done");
+    renderRun();
+  }
+}
+
 function updateVoiceButton(label) {
   const btn = document.getElementById("voice-btn");
   if (!btn) return;
