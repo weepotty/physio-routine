@@ -622,6 +622,23 @@
   </div>
 </div>
 
+<!-- Run screen -->
+<div id="run-screen" style="display:none">
+  <div class="card" style="margin: 20px 16px 0">
+    <div class="card-header">
+      <button class="btn-home" onclick="goToDayPicker()">&#9776;</button>
+      <span id="run-round-text" class="run-round-text"></span>
+    </div>
+    <div class="card-body" style="padding-top: 36px; padding-bottom: 44px; text-align: center">
+      <div id="run-phase-label" class="run-phase-label"></div>
+      <div id="run-countdown" class="run-countdown"></div>
+      <div id="run-next-hint" class="run-next-hint"></div>
+      <button class="btn-timer" id="run-btn" onclick="toggleRunTimer()" style="margin-top: 32px">Start</button>
+      <button class="btn-restart" id="run-restart-btn" onclick="restartRun()" style="display:none">Start over</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const mobility = [
   {title: "Hip 90/90", desc: "Focus on the 90/90 position", main: "1–2 mins", countdown: 90, link: "https://www.youtube.com/shorts/PaAsDR0jyPQ"},
