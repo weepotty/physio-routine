@@ -692,7 +692,10 @@
       <div id="run-phase-label" class="run-phase-label"></div>
       <div id="run-countdown" class="run-countdown"></div>
       <div id="run-next-hint" class="run-next-hint"></div>
-      <button class="btn-timer" id="run-btn" onclick="toggleRunTimer()" style="margin-top: 32px">Start</button>
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:32px">
+        <button class="btn-timer" id="run-btn" onclick="toggleRunTimer()">Start</button>
+        <button class="btn-timer" id="run-skip-btn" onclick="skipRunPhase()" style="display:none; background:linear-gradient(135deg,#6b7280,#4b5563); box-shadow:0 4px 14px rgba(107,114,128,0.3)">Skip →</button>
+      </div>
       <button class="btn-restart" id="run-restart-btn" onclick="restartRun()" style="display:none">Start over</button>
     </div>
   </div>
@@ -850,6 +853,7 @@ function renderRun() {
   const countdown = document.getElementById("run-countdown");
   const nextHint = document.getElementById("run-next-hint");
   const btn = document.getElementById("run-btn");
+  const skipBtn = document.getElementById("run-skip-btn");
   const restartBtn = document.getElementById("run-restart-btn");
   const roundText = document.getElementById("run-round-text");
 
@@ -860,12 +864,14 @@ function renderRun() {
     countdown.style.display = "none";
     nextHint.innerText = "";
     btn.style.display = "none";
+    skipBtn.style.display = "none";
     restartBtn.style.display = "block";
     return;
   }
 
   countdown.style.display = "block";
   btn.style.display = "block";
+  skipBtn.style.display = runMode === "warmup" ? "block" : "none";
   restartBtn.style.display = "none";
 
   const labels = { idle: "Start", running: "Pause", paused: "Resume" };
@@ -974,6 +980,11 @@ function restartRun() {
   runRound = 1;
   runRemainingTime = WARMUP_SECONDS;
   renderRun();
+}
+
+function skipRunPhase() {
+  if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
+  advanceRunPhase();
 }
 
 function updateVoiceButton(label) {
