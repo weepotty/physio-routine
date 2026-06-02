@@ -86,6 +86,28 @@
     background: #f5f7ff;
   }
 
+  .day-card.today {
+    background: #f5f7ff;
+    box-shadow: inset 3px 0 0 #4f63d2;
+  }
+
+  .day-today-badge {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #4f63d2;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    background: #eef0fd;
+    border-radius: 6px;
+  }
+
+  .day-today-badge.optional {
+    color: #7a82a6;
+    background: #f0f2f8;
+  }
+
   .day-pill {
     flex-shrink: 0;
     padding: 5px 11px;
@@ -724,6 +746,16 @@ const routines = {
     ...mobility
   ]
 };
+
+const WEEKLY_SCHEDULE = {
+  1: { workout: 'day2', name: 'Strength' },
+  2: { workout: 'run',  name: 'Run' },
+  3: { workout: 'day2', name: 'Strength', optional: true },
+  4: { workout: 'day1', name: 'Plyometrics' },
+  5: { workout: 'day2', name: 'Strength' },
+  6: { workout: 'run',  name: 'Run' },
+};
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 const REST_SECONDS = 5;
 const RUN_SECONDS = 60;
@@ -1381,7 +1413,36 @@ function restart() {
   render();
 }
 
+function initTodayHighlight() {
+  const day = new Date().getDay();
+  const todayName = DAY_NAMES[day];
+  const schedule = WEEKLY_SCHEDULE[day];
+
+  const heroSub = document.querySelector('#day-screen .home-hero p');
+  if (!schedule) {
+    heroSub.innerText = todayName + ' · Rest day';
+    return;
+  }
+
+  heroSub.innerText = todayName + ' · ' + schedule.name + (schedule.optional ? ' (if feeling good)' : '');
+
+  const cardSelectors = {
+    day1: '[onclick="selectDay(\'day1\')"]',
+    day2: '[onclick="selectDay(\'day2\')"]',
+    run:  '[onclick="startRun()"]',
+  };
+  const card = document.querySelector(cardSelectors[schedule.workout]);
+  if (!card) return;
+
+  card.classList.add('today');
+  const badge = document.createElement('span');
+  badge.className = 'day-today-badge' + (schedule.optional ? ' optional' : '');
+  badge.innerText = schedule.optional ? 'Today?' : 'Today';
+  card.insertBefore(badge, card.querySelector('.exercise-chevron'));
+}
+
 showScreen("day");
+initTodayHighlight();
 </script>
 
 </body>
