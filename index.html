@@ -718,6 +718,7 @@
         <button class="btn-timer" id="run-btn" onclick="toggleRunTimer()">Start</button>
         <button class="btn-timer" id="run-skip-btn" onclick="skipRunPhase()" style="display:none; background:linear-gradient(135deg,#6b7280,#4b5563); box-shadow:0 4px 14px rgba(107,114,128,0.3)">Skip →</button>
       </div>
+      <button class="btn-restart" id="run-phase-restart-btn" onclick="restartCurrentRunPhase()" style="display:none">↺ Restart this</button>
       <button class="btn-restart" id="run-restart-btn" onclick="restartRun()" style="display:none">Start over</button>
     </div>
   </div>
@@ -886,6 +887,7 @@ function renderRun() {
   const nextHint = document.getElementById("run-next-hint");
   const btn = document.getElementById("run-btn");
   const skipBtn = document.getElementById("run-skip-btn");
+  const phaseRestartBtn = document.getElementById("run-phase-restart-btn");
   const restartBtn = document.getElementById("run-restart-btn");
   const roundText = document.getElementById("run-round-text");
 
@@ -897,6 +899,7 @@ function renderRun() {
     nextHint.innerText = "";
     btn.style.display = "none";
     skipBtn.style.display = "none";
+    phaseRestartBtn.style.display = "none";
     restartBtn.style.display = "block";
     return;
   }
@@ -904,6 +907,7 @@ function renderRun() {
   countdown.style.display = "block";
   btn.style.display = "block";
   skipBtn.style.display = runMode === "warmup" ? "block" : "none";
+  phaseRestartBtn.style.display = (runState === "running" || runState === "paused") ? "block" : "none";
   restartBtn.style.display = "none";
 
   const labels = { idle: "Start", running: "Pause", paused: "Resume" };
@@ -1017,6 +1021,21 @@ function restartRun() {
 function skipRunPhase() {
   if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
   advanceRunPhase();
+}
+
+function restartCurrentRunPhase() {
+  if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
+  if (runMode === "warmup") {
+    runRemainingTime = WARMUP_SECONDS;
+  } else if (runPhase === "run") {
+    runRemainingTime = RUN_SECONDS;
+  } else {
+    runRemainingTime = WALK_SECONDS;
+  }
+  runState = "running";
+  renderRun();
+  speakPhase(runMode === "warmup" ? WARMUP_EXERCISES[warmupIndex] : runPhase);
+  runIntervalId = setInterval(runTick, 1000);
 }
 
 function updateVoiceButton(label) {
