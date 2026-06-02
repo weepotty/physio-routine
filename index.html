@@ -963,6 +963,17 @@ function advanceRunPhase() {
   }
 }
 
+function restartRun() {
+  if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
+  runState = "idle";
+  runMode = "warmup";
+  warmupIndex = 0;
+  runPhase = "run";
+  runRound = 1;
+  runRemainingTime = WARMUP_SECONDS;
+  renderRun();
+}
+
 function updateVoiceButton(label) {
   const btn = document.getElementById("voice-btn");
   if (!btn) return;
