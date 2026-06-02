@@ -826,6 +826,76 @@ function speakPhase(phase) {
   }
 }
 
+function formatRunTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+
+function startRun() {
+  getAudioContext();
+  if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
+  runState = "idle";
+  runMode = "warmup";
+  warmupIndex = 0;
+  runPhase = "run";
+  runRound = 1;
+  runRemainingTime = WARMUP_SECONDS;
+  showScreen("run");
+  renderRun();
+}
+
+function renderRun() {
+  const phaseLabel = document.getElementById("run-phase-label");
+  const countdown = document.getElementById("run-countdown");
+  const nextHint = document.getElementById("run-next-hint");
+  const btn = document.getElementById("run-btn");
+  const restartBtn = document.getElementById("run-restart-btn");
+
+  if (runState === "done") {
+    document.getElementById("run-round-text").innerText = "Round " + RUN_ROUNDS + " of " + RUN_ROUNDS;
+    phaseLabel.innerText = "Done!";
+    phaseLabel.className = "run-phase-label run-phase-done";
+    countdown.style.display = "none";
+    nextHint.innerText = "";
+    btn.style.display = "none";
+    restartBtn.style.display = "block";
+    return;
+  }
+
+  countdown.style.display = "block";
+  btn.style.display = "block";
+  restartBtn.style.display = "none";
+
+  const labels = { idle: "Start", running: "Pause", paused: "Resume" };
+  btn.innerText = labels[runState] || "Start";
+
+  if (runMode === "warmup") {
+    document.getElementById("run-round-text").innerText = "Warm-up " + (warmupIndex + 1) + " of " + WARMUP_EXERCISES.length;
+    phaseLabel.innerText = WARMUP_EXERCISES[warmupIndex].toUpperCase();
+    phaseLabel.className = "run-phase-label run-phase-warmup";
+    countdown.innerText = formatRunTime(runRemainingTime);
+    const nextIdx = warmupIndex + 1;
+    if (nextIdx < WARMUP_EXERCISES.length) {
+      nextHint.innerText = "Up next: " + WARMUP_EXERCISES[nextIdx];
+    } else {
+      nextHint.innerText = "Run next \xb7 " + formatRunTime(RUN_SECONDS);
+    }
+  } else {
+    document.getElementById("run-round-text").innerText = "Round " + runRound + " of " + RUN_ROUNDS;
+    if (runPhase === "run") {
+      phaseLabel.innerText = "RUN";
+      phaseLabel.className = "run-phase-label run-phase-run";
+      nextHint.innerText = "Walk next \xb7 " + formatRunTime(WALK_SECONDS);
+    } else {
+      phaseLabel.innerText = "WALK";
+      phaseLabel.className = "run-phase-label run-phase-walk";
+      nextHint.innerText = runRound < RUN_ROUNDS ? "Run next \xb7 " + formatRunTime(RUN_SECONDS) : "";
+    }
+    countdown.innerText = formatRunTime(runRemainingTime);
+  }
+}
+
 function updateVoiceButton(label) {
   const btn = document.getElementById("voice-btn");
   if (!btn) return;
