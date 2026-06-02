@@ -719,6 +719,9 @@ const routines = {
 };
 
 const REST_SECONDS = 5;
+const RUN_SECONDS = 60;
+const WALK_SECONDS = 120;
+const RUN_ROUNDS = 8;
 
 let routine = [];
 let activeDay = null;
@@ -738,6 +741,11 @@ let micAnalyser = null;
 let micDataArray = null;
 let micRafId = null;
 let lastTriggerAt = 0;
+let runState = "idle"; // "idle" | "running" | "paused" | "done"
+let runPhase = "run";  // "run" | "walk"
+let runRound = 1;
+let runRemainingTime = 0;
+let runIntervalId = null;
 // Peak amplitude threshold (0–1) — louder than ambient room noise but easy to hit with a clap or grunt
 const SOUND_THRESHOLD = 0.15;
 const TRIGGER_COOLDOWN_MS = 350;
@@ -784,6 +792,26 @@ function playGo() {
   const now = ctx.currentTime;
   playTone(880, now, 0.12, ctx);
   playTone(1175, now + 0.14, 0.18, ctx);
+}
+
+function playWalk() {
+  const ctx = getAudioContext();
+  const now = ctx.currentTime;
+  playTone(880, now, 0.12, ctx);
+  playTone(660, now + 0.14, 0.18, ctx);
+}
+
+function speakPhase(phase) {
+  if (window.speechSynthesis) {
+    const text = phase === "run" ? "Run!" : phase === "walk" ? "Walk!" : "Well done!";
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  } else if (phase === "run") {
+    playGo();
+  } else if (phase === "walk") {
+    playWalk();
+  } else {
+    playAllSetsComplete();
+  }
 }
 
 function updateVoiceButton(label) {
