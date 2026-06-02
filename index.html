@@ -803,7 +803,10 @@ function playWalk() {
 
 function speakPhase(phase) {
   if (window.speechSynthesis) {
-    const text = phase === "run" ? "Run!" : phase === "walk" ? "Walk!" : "Well done!";
+    let text = "Well done!";
+    if (phase === "run") text = "Run!";
+    else if (phase === "walk") text = "Walk!";
+    window.speechSynthesis.cancel();
     window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
   } else if (phase === "run") {
     playGo();
