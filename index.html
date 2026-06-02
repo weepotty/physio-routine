@@ -872,10 +872,12 @@ function showScreen(screenId) {
   document.getElementById("day-screen").style.display = screenId === "day" ? "block" : "none";
   document.getElementById("list-screen").style.display = screenId === "list" ? "block" : "none";
   document.getElementById("exercise-screen").style.display = screenId === "exercise" ? "block" : "none";
+  document.getElementById("run-screen").style.display = screenId === "run" ? "block" : "none";
 }
 
 function goToDayPicker() {
   if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
   stopVoice();
   showScreen("day");
 }
