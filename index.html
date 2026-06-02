@@ -532,6 +532,59 @@
     color: #7a82a6;
     border-color: #c8cee0;
   }
+
+  /* ── Run screen ──────────────────────────────── */
+
+  #run-screen {
+    width: 100%;
+    max-width: 480px;
+    padding: 20px 16px 0;
+  }
+
+  .run-round-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8892c0;
+    letter-spacing: 0.3px;
+  }
+
+  .run-phase-label {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+    transition: color 0.3s;
+  }
+
+  .run-phase-run {
+    color: #16a34a;
+  }
+
+  .run-phase-walk {
+    color: #1a7fa6;
+  }
+
+  .run-phase-done {
+    color: #1a1f36;
+    font-size: 40px;
+  }
+
+  .run-countdown {
+    font-size: 64px;
+    font-weight: 800;
+    color: #1a1f36;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .run-next-hint {
+    font-size: 14px;
+    color: #8892c0;
+    font-weight: 500;
+    min-height: 20px;
+    margin-bottom: 4px;
+  }
 </style>
 </head>
 
@@ -624,7 +677,7 @@
 
 <!-- Run screen -->
 <div id="run-screen" style="display:none">
-  <div class="card" style="margin: 20px 16px 0">
+  <div class="card">
     <div class="card-header">
       <button class="btn-home" onclick="goToDayPicker()">&#9776;</button>
       <span id="run-round-text" class="run-round-text"></span>
