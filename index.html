@@ -649,6 +649,14 @@
       </div>
       <span class="exercise-chevron">›</span>
     </div>
+    <div class="day-card" onclick="startRun(10)">
+      <div class="day-pill day-pill-run">Run</div>
+      <div class="day-info">
+        <div class="day-title">Run 2</div>
+        <div class="day-sub">Half-speed intervals · ~32 min</div>
+      </div>
+      <span class="exercise-chevron">›</span>
+    </div>
   </div>
 </div>
 
@@ -788,6 +796,7 @@ let runMode = "warmup"; // "warmup" | "intervals"
 let warmupIndex = 0;
 let runPhase = "run";  // "run" | "walk"
 let runRound = 1;
+let runRounds = RUN_ROUNDS; // active number of run/walk cycles for the current run
 let runRemainingTime = 0;
 let runIntervalId = null;
 // Peak amplitude threshold (0–1) — louder than ambient room noise but easy to hit with a clap or grunt
@@ -868,9 +877,10 @@ function formatRunTime(seconds) {
   return m + ":" + (s < 10 ? "0" : "") + s;
 }
 
-function startRun() {
+function startRun(rounds) {
   getAudioContext();
   if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
+  runRounds = rounds || RUN_ROUNDS;
   runState = "idle";
   runMode = "warmup";
   warmupIndex = 0;
@@ -892,7 +902,7 @@ function renderRun() {
   const roundText = document.getElementById("run-round-text");
 
   if (runState === "done") {
-    roundText.innerText = "Round " + RUN_ROUNDS + " of " + RUN_ROUNDS;
+    roundText.innerText = "Round " + runRounds + " of " + runRounds;
     phaseLabel.innerText = "Done!";
     phaseLabel.className = "run-phase-label run-phase-done";
     countdown.style.display = "none";
@@ -925,7 +935,7 @@ function renderRun() {
       nextHint.innerText = "Run next \xb7 " + formatRunTime(RUN_SECONDS);
     }
   } else {
-    roundText.innerText = "Round " + runRound + " of " + RUN_ROUNDS;
+    roundText.innerText = "Round " + runRound + " of " + runRounds;
     if (runPhase === "run") {
       phaseLabel.innerText = "RUN";
       phaseLabel.className = "run-phase-label run-phase-run";
@@ -933,7 +943,7 @@ function renderRun() {
     } else {
       phaseLabel.innerText = "WALK";
       phaseLabel.className = "run-phase-label run-phase-walk";
-      nextHint.innerText = runRound < RUN_ROUNDS ? "Run next \xb7 " + formatRunTime(RUN_SECONDS) : "";
+      nextHint.innerText = runRound < runRounds ? "Run next \xb7 " + formatRunTime(RUN_SECONDS) : "";
     }
     countdown.innerText = formatRunTime(runRemainingTime);
   }
@@ -992,7 +1002,7 @@ function advanceRunPhase() {
     runState = "running";
     renderRun();
     runIntervalId = setInterval(runTick, 1000);
-  } else if (runRound < RUN_ROUNDS) {
+  } else if (runRound < runRounds) {
     runRound++;
     runPhase = "run";
     runRemainingTime = RUN_SECONDS;
