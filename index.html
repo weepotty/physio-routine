@@ -800,6 +800,11 @@ let runRound = 1;
 let runRounds = RUN_ROUNDS; // active number of run/walk cycles for the current run
 let runRemainingTime = 0;
 let runIntervalId = null;
+let timerStartedAt = null;
+let timerBaseRemaining = 0;
+let runTimerStartedAt = null;
+let runTimerBaseRemaining = 0;
+let wakeLock = null;
 // Peak amplitude threshold (0–1) — louder than ambient room noise but easy to hit with a clap or grunt
 const SOUND_THRESHOLD = 0.15;
 const TRIGGER_COOLDOWN_MS = 350;
@@ -810,6 +815,24 @@ function getAudioContext() {
   }
   return audioCtx;
 }
+
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator) || wakeLock) return;
+  try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', async function() {
+  if (document.hidden) return;
+  const exerciseTimerActive = timerState === 'running' || timerState === 'resting';
+  const runTimerActive = runState === 'running';
+  if (exerciseTimerActive || runTimerActive) {
+    await acquireWakeLock();
+  }
+});
 
 function playTone(frequency, startTime, duration, ctx) {
   const oscillator = ctx.createOscillator();
@@ -955,24 +978,34 @@ function toggleRunTimer() {
   if (runState === "running") {
     clearInterval(runIntervalId);
     runIntervalId = null;
+    runTimerStartedAt = null;
     runState = "paused";
+    releaseWakeLock();
     renderRun();
   } else {
     if (runState === "idle") {
       speakPhase(runMode === "warmup" ? WARMUP_EXERCISES[warmupIndex] : runPhase);
     }
     runState = "running";
+    acquireWakeLock();
     renderRun();
-    runIntervalId = setInterval(runTick, 1000);
+    startRunInterval();
   }
 }
 
+function startRunInterval() {
+  runTimerStartedAt = Date.now();
+  runTimerBaseRemaining = runRemainingTime;
+  runIntervalId = setInterval(runTick, 1000);
+}
+
 function runTick() {
-  runRemainingTime--;
-  document.getElementById("run-countdown").innerText = formatRunTime(runRemainingTime);
+  runRemainingTime = runTimerBaseRemaining - Math.floor((Date.now() - runTimerStartedAt) / 1000);
+  document.getElementById("run-countdown").innerText = formatRunTime(Math.max(0, runRemainingTime));
   if (runRemainingTime <= 0) {
     clearInterval(runIntervalId);
     runIntervalId = null;
+    runTimerStartedAt = null;
     advanceRunPhase();
   }
 }
@@ -985,7 +1018,7 @@ function advanceRunPhase() {
       speakPhase(WARMUP_EXERCISES[warmupIndex]);
       runState = "running";
       renderRun();
-      runIntervalId = setInterval(runTick, 1000);
+      startRunInterval();
     } else {
       runMode = "intervals";
       runPhase = "run";
@@ -994,7 +1027,7 @@ function advanceRunPhase() {
       speakPhase("run");
       runState = "running";
       renderRun();
-      runIntervalId = setInterval(runTick, 1000);
+      startRunInterval();
     }
   } else if (runPhase === "run") {
     runPhase = "walk";
@@ -1002,7 +1035,7 @@ function advanceRunPhase() {
     speakPhase("walk");
     runState = "running";
     renderRun();
-    runIntervalId = setInterval(runTick, 1000);
+    startRunInterval();
   } else if (runRound < runRounds) {
     runRound++;
     runPhase = "run";
@@ -1010,7 +1043,7 @@ function advanceRunPhase() {
     speakPhase("run");
     runState = "running";
     renderRun();
-    runIntervalId = setInterval(runTick, 1000);
+    startRunInterval();
   } else {
     runState = "done";
     speakPhase("done");
@@ -1046,7 +1079,7 @@ function restartCurrentRunPhase() {
   runState = "running";
   renderRun();
   speakPhase(runMode === "warmup" ? WARMUP_EXERCISES[warmupIndex] : runPhase);
-  runIntervalId = setInterval(runTick, 1000);
+  startRunInterval();
 }
 
 function updateVoiceButton(label) {
@@ -1141,12 +1174,17 @@ function showScreen(screenId) {
 function goToDayPicker() {
   if (intervalId) { clearInterval(intervalId); intervalId = null; }
   if (runIntervalId) { clearInterval(runIntervalId); runIntervalId = null; }
+  timerStartedAt = null;
+  runTimerStartedAt = null;
+  releaseWakeLock();
   stopVoice();
   showScreen("day");
 }
 
 function goHome() {
   if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  timerStartedAt = null;
+  releaseWakeLock();
   stopVoice();
   showScreen("list");
 }
@@ -1284,7 +1322,9 @@ function toggleTimer() {
   if (timerState === "running") {
     clearInterval(intervalId);
     intervalId = null;
+    timerStartedAt = null;
     timerState = "paused";
+    releaseWakeLock();
     setTimerButtonLabel();
   } else if (timerState === "resting") {
     clearInterval(intervalId);
@@ -1307,11 +1347,15 @@ function toggleTimer() {
 
 function runTimer() {
   const item = routine[i];
+  timerStartedAt = Date.now();
+  timerBaseRemaining = remainingTime;
+  acquireWakeLock();
   intervalId = setInterval(function() {
-    remainingTime--;
+    remainingTime = timerBaseRemaining - Math.floor((Date.now() - timerStartedAt) / 1000);
     if (remainingTime < 0) {
       clearInterval(intervalId);
       intervalId = null;
+      timerStartedAt = null;
       currentSet++;
       if (currentSet <= (item.sets || 1)) {
         playSetComplete();
@@ -1322,6 +1366,7 @@ function runTimer() {
         document.getElementById("sub").innerText = "";
         timerState = "done";
         setTimerButtonLabel();
+        releaseWakeLock();
       }
     } else {
       document.getElementById("main").innerText = formatTime(remainingTime);
@@ -1333,14 +1378,17 @@ function startRest() {
   const item = routine[i];
   timerState = "resting";
   remainingTime = REST_SECONDS;
+  timerStartedAt = Date.now();
+  timerBaseRemaining = remainingTime;
   document.getElementById("main").innerText = remainingTime + "s";
   document.getElementById("sub").innerText = "Rest before set " + currentSet + " of " + item.sets;
   setTimerButtonLabel();
   intervalId = setInterval(function() {
-    remainingTime--;
+    remainingTime = timerBaseRemaining - Math.floor((Date.now() - timerStartedAt) / 1000);
     if (remainingTime < 0) {
       clearInterval(intervalId);
       intervalId = null;
+      timerStartedAt = null;
       finishRest();
     } else {
       document.getElementById("main").innerText = remainingTime + "s";
